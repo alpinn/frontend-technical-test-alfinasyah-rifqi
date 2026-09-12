@@ -1,0 +1,138 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@theme {
+  --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+
+  --text-2xs: 0.625rem;
+  --text-2xs--line-height: 1.4;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.4;
+  --text-sm: 0.8125rem;
+  --text-sm--line-height: 1.4;
+  --text-base: 0.9375rem;
+  --text-base--line-height: 1.4;
+  --text-lg: 1.1875rem;
+  --text-lg--line-height: 1.25;
+  --text-xl: 1.5rem;
+  --text-xl--line-height: 1.2;
+  --text-2xl: 1.875rem;
+  --text-2xl--line-height: 1.15;
+  --text-3xl: 2.3125rem;
+  --text-3xl--line-height: 1.15;
+
+  --color-blue-light: #e6ecf3;
+  --color-blue-light-hover: #d9e2ed;
+  --color-blue-light-active: #b1c3d9;
+  --color-blue-normal: #043c86;
+  --color-blue-normal-hover: #043679;
+  --color-blue-normal-active: #03306b;
+  --color-blue-dark: #032d65;
+  --color-blue-dark-hover: #022450;
+  --color-blue-dark-active: #021b3c;
+  --color-blue-darker: #01152f;
+
+  --color-surface-white: #ffffff;
+  --color-surface-white-hover: #fcfdfd;
+  --color-surface-white-active: #f5f7f9;
+  --color-surface-light: #fcfdfd;
+  --color-surface-light-hover: #f5f7f9;
+  --color-surface-light-active: #f0f3f6;
+  --color-surface-normal: #f9fafb;
+  --color-surface-normal-hover: #f2f4f7;
+  --color-surface-normal-active: #ebeef2;
+  --color-surface-dark: #f6f8f9;
+
+  --color-dark-lighter: #b2bbc6;
+  --color-dark-light: #a3adbb;
+  --color-dark-light-active: #909dad;
+  --color-dark-normal: #546881;
+  --color-dark-normal-hover: #47586e;
+  --color-dark-normal-active: #3d4c5e;
+  --color-dark: #1d242d;
+  --color-dark-hover: #151a20;
+  --color-dark-active: #090b0e;
+
+  --color-success-bg: #eaf5f1;
+  --color-success-fg: #2b6e5c;
+  --color-success-border: #d6ebe4;
+  --color-warning-bg: #f8f3e7;
+  --color-warning-fg: #8b6d2a;
+  --color-warning-border: #eee3c8;
+  --color-danger-bg: #f8eaec;
+  --color-danger-fg: #995062;
+  --color-danger-border: #eed8de;
+
+  --color-sidebar: #f5f6f7;
+  --color-line: #e6e9ed;
+  --color-line-strong: #dce1e6;
+
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 7px;
+  --radius-lg: 8px;
+  --radius-xl: 10px;
+  --radius-2xl: 16px;
+
+  --animate-shimmer: shimmer 1.2s linear infinite;
+
+  --shadow-soft: 0 1px 2px rgb(9 11 14 / 0.04), 0 6px 18px rgb(9 11 14 / 0.03);
+  --shadow-overlay: 0 18px 40px rgb(9 11 14 / 0.12);
+}
+
+@theme inline {
+  --color-background: var(--color-surface-white);
+  --color-foreground: var(--color-dark-active);
+  --color-card: var(--color-surface-white);
+  --color-card-foreground: var(--color-dark-active);
+  --color-popover: var(--color-surface-white);
+  --color-popover-foreground: var(--color-dark-active);
+  --color-primary: var(--color-blue-normal);
+  --color-primary-foreground: var(--color-surface-white);
+  --color-secondary: var(--color-surface-normal);
+  --color-secondary-foreground: var(--color-dark-normal-active);
+  --color-muted: var(--color-surface-normal);
+  --color-muted-foreground: var(--color-dark-normal);
+  --color-accent: var(--color-surface-normal-hover);
+  --color-accent-foreground: var(--color-dark-active);
+  --color-destructive: var(--color-danger-fg);
+  --color-destructive-foreground: var(--color-surface-white);
+  --color-border: var(--color-line);
+  --color-input: var(--color-line-strong);
+  --color-ring: var(--color-blue-normal);
+  --radius: var(--radius-md);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    background-color: var(--color-surface-white);
+  }
+
+  body {
+    @apply bg-background font-sans text-base text-foreground antialiased;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-blue-normal);
+    outline-offset: 2px;
+  }
+
+  ::placeholder {
+    color: var(--color-dark-light-active);
+  }
+}
+
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@utility scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-dark-lighter) transparent;
+}
