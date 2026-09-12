@@ -1,0 +1,170 @@
+# Frontend Technical Test — Alfinasyah Rifqi
+
+ProcureFlow — an inventory procurement web application covering the internal purchasing flow:
+
+```
+Purchase Request → Approval → Purchase Order → Goods Receipt → Inventory Updated
+```
+
+## Project Overview
+
+A frontend-only application for staff who raise stock requests and managers who approve them. Two roles are simulated:
+
+| Role                                          | Can do                                                                                                                            |
+| --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `USER` (John Doe, Warehouse Staff)            | View dashboard, view/create/edit draft purchase requests, submit them, view purchase orders, record goods receipt, view inventory |
+| `APPROVER` (Alex Morgan, Procurement Manager) | View purchase requests and their detail, approve, reject with a reason                                                            |
+
+Actions that are invalid for the active role or the current record status are **hidden**, not merely disabled, so the interface never offers something that cannot succeed.
+
+There is no real backend and no real authentication — both are deliberately out of scope. The application talks to a mock API over the network via Mock Service Worker, so the same code would work against a real server by removing the worker.
+
+## Tech Stack
+
+| Concern         | Choice                                                         |
+| --------------- | -------------------------------------------------------------- |
+| Language        | TypeScript                                                     |
+| Framework       | React 19                                                       |
+| Build tool      | Vite 8                                                         |
+| Routing         | TanStack Router (file-based, auto code-splitting)              |
+| Server state    | TanStack Query                                                 |
+| Styling         | Tailwind CSS 4 (CSS-first `@theme` tokens)                     |
+| Components      | shadcn/ui, restyled to the ProcureFlow design system           |
+| Icons           | lucide-react, wrapped in one `<Icon>` with `strokeWidth={1.7}` |
+| Forms           | React Hook Form + Zod                                          |
+| Mock API        | MSW (Mock Service Worker)                                      |
+| Testing         | Vitest + React Testing Library                                 |
+| Package manager | Yarn                                                           |
+
+## Project Structure
+
+```
+src/
+├── api/              HTTP client + one module per resource (queryOptions & mutation fns)
+├── components/
+│   ├── ui/           shadcn/ui primitives, restyled to design-system tokens
+│   └── *.tsx         shared application components (PageHeader, StatusBadge, states, shell)
+├── hooks/            React context hooks (role switching)
+├── lib/              framework-free helpers (formatting, status maps, navigation, tokens glue)
+├── mocks/            MSW handlers + in-memory database that enforces the business rules
+├── routes/           file-based routes; one file per page
+├── test/             test setup and render helpers
+├── types.ts          domain model shared by the UI and the mock API
+└── index.css         design tokens (@theme) and base layer
+```
+
+The structure follows the size of the application rather than a prescribed architecture: a flat `api/` + `components/` + `routes/` layout, with feature-specific components living next to the route that owns them once a page grows beyond one file. No feature-sliced layering, because the app has four primary entities and that ceremony would not pay for itself.
+
+## Setup
+
+Requires Node 22+ and Yarn.
+
+```bash
+yarn install
+```
+
+## Environment Variables
+
+| Variable           | Default | Purpose                                                                                       |
+| ------------------ | ------- | --------------------------------------------------------------------------------------------- |
+| `VITE_MOCK_ERRORS` | `false` | When `true`, every mock API response fails with HTTP 500 so error states can be demonstrated. |
+
+Copy `.env.example` to `.env` to change it. Neither is required — the app runs with no environment file at all. In development the same switch is also available as a **Simulate API errors** checkbox at the bottom of the sidebar, which is the easier way to demo error states.
+
+## Run Application
+
+```bash
+yarn dev        # development server on http://localhost:5173
+yarn build      # typecheck + production build to dist/
+yarn preview    # serve the production build
+```
+
+Other scripts:
+
+```bash
+yarn lint          # ESLint
+yarn typecheck     # tsc --noEmit
+yarn format        # Prettier write
+yarn format:check  # Prettier check
+```
+
+### Docker
+
+A single multi-stage image builds the app and serves the static output with nginx. No `docker-compose` is needed: the mock API runs inside the browser as a service worker, not as a separate process.
+
+```bash
+docker build -t procureflow .
+docker run --rm -p 8080:80 procureflow
+```
+
+## Testing
+
+```bash
+yarn test           # run once
+yarn test:watch     # watch mode
+yarn test:coverage   # with coverage report
+```
+
+Tests target behaviour and business rules rather than render smoke checks:
+
+- a purchase request cannot be created or submitted without items
+- quantity must be greater than zero, and the same product cannot be added twice
+- only a `SUBMITTED` request can be approved or rejected; rejection requires a reason
+- goods receipt cannot exceed the remaining quantity, and cannot be zero
+- receiving moves a purchase order `ORDERED → PARTIALLY_RECEIVED → RECEIVED` and increases stock
+- the Goods Receipt entry point is visible to `USER` and hidden from `APPROVER`
+- switching role in the top bar changes which actions are offered
+
+## Mock API / Data Strategy
+
+Data access is layered so the UI never touches mock data directly:
+
+```
+Route / Component
+      ↓  useQuery / useMutation
+src/api/*          typed fetch calls against /api/* (the only place URLs exist)
+      ↓  HTTP
+src/mocks/handlers MSW request handlers: parse query params, paginate, map errors to status codes
+      ↓
+src/mocks/db       in-memory database; owns all business rules and status transitions
+```
+
+- **MSW intercepts real `fetch` calls at the network layer.** Nothing is stubbed at the function level, so TanStack Query experiences genuine loading, error and refetch behaviour, and the browser devtools network tab shows the requests.
+- **`src/mocks/db.ts` is the system of record.** It enforces every rule — duplicate products, quantity bounds, legal status transitions, stock movements — so a rule cannot be bypassed by driving the UI differently. The handlers are a thin HTTP translation over it.
+- **Every handler waits 300–800 ms** (skipped when `MODE === 'test'`, so the suite stays fast) so loading and submitting states are genuinely visible.
+- **Validation failures return HTTP 422 with a `fieldErrors` map**, which the forms map onto the relevant inputs; conflicting transitions return 409; unknown records 404.
+- **State is in-memory and resets on reload.** See the engineering decisions below.
+- Seed data is shaped to match the dashboard figures in the design: 48 purchase requests, 8 awaiting approval, 21 active purchase orders, 5 partially received.
+
+## Engineering Decisions
+
+**1. MSW at the network boundary instead of mocked modules.**
+A mocked service function proves the component renders; it does not prove the data layer works. Intercepting `fetch` means the query cache, retry policy, error mapping, loading states and pagination are all exercised for real, and swapping in a live backend is a matter of deleting the worker registration — no application code changes. The same handlers run in the browser (`msw/browser`) and in tests (`msw/node`), so tests and demo share one source of truth.
+
+**2. Business rules live in the mock API, not in the components.**
+Quantity bounds, duplicate products, legal status transitions and stock arithmetic are enforced in `src/mocks/db.ts` and surfaced as HTTP 422/409 responses. The forms also validate with Zod for immediate inline feedback, but the server-side check is authoritative. This mirrors how the real system must behave — a client-only rule is not a rule — and it means the business-rule tests can be fast and UI-independent while the UI tests focus on interaction.
+
+**3. Server state in TanStack Query, UI state in React, and nothing else.**
+Everything fetched lives in the query cache keyed per resource and filter set; everything local (form values, dialog visibility, the active role) lives in component state or one small React context. No Redux or Zustand, because there is no cross-tree client state that outlives a page beyond the current role — a context with a `useState` solves that in a dozen lines. Mutations invalidate the affected query keys, which is what makes approve, reject and goods receipt update the screen with no page reload.
+
+**4. Approving a purchase request creates its purchase order automatically.**
+The requirement describes the chain `PR → Approval → PO → Goods Receipt` but never says who creates the purchase order. Rather than invent a PO authoring screen outside the required scope, approval generates an `ORDERED` purchase order from the approved request's items. This keeps the end-to-end flow continuous and demonstrable, and models the realistic case where approval is what releases the order.
+
+**5. Design tokens as Tailwind 4 `@theme` variables, shadcn/ui restyled rather than replaced.**
+Every colour, radius, font size and shadow from `procureflow-design-system.html` is declared once in `src/index.css` as a theme variable, which makes them available as Tailwind utilities (`bg-blue-normal`, `text-dark-normal`, `rounded-xl`) and simultaneously as the values shadcn/ui's semantic variables point at. No component was rebuilt from scratch: `Button`, `Input`, `Badge`, `Table`, `Card`, `Dialog`, `Drawer`, `Sheet`, `Toast` and `Form` are the shadcn primitives with their variants rewritten in design-system tokens. `StatusBadge` is a thin domain wrapper over `Badge`, not a new component.
+
+## Assumptions
+
+Requirements that were ambiguous, and the call made:
+
+1. **An `APPROVER` can only approve or reject a request that is currently `SUBMITTED`.** A `DRAFT`, `APPROVED` or `REJECTED` request offers no decision action, and the mock API rejects the transition with HTTP 409 even if the request were made directly.
+2. **Approving a request auto-creates its purchase order** with status `ORDERED`. See engineering decision 4.
+3. **`CANCELLED` purchase orders are styled like `DRAFT`** — neutral surface with a muted label. The design system provides badge styles for every other status but not for `CANCELLED`; neutral is correct because a cancelled order is inert rather than a warning or an error. `CANCELLED` appears in seed data and as a filter option; no UI action cancels an order, since the requirement never grants either role that power.
+4. **Purchase orders are read-only apart from receiving.** Nothing in the requirement lets a user author, edit or cancel a purchase order, so no such action exists.
+5. **`APPROVER` keeps read access to the dashboard, purchase orders and inventory,** but the Goods Receipt entry point is hidden because recording a receipt is listed as a `USER` capability. Hiding the other pages would leave an approver with a single usable screen and no context for the decisions they make.
+6. **Mock state resets on page reload.** State is in-memory, so a demo always starts from the same seeded position and the reviewer can replay the whole flow repeatably. Persisting to `localStorage` would let a half-finished experiment become confusing state with no obvious way to clear it.
+7. **Role is switched from the control in the top bar** and is not persisted. It stands in for authentication; each role is bound to a fixed identity so that "requested by" and "approved by" are recorded with a real name.
+8. **Reports and Settings exist in the navigation but are intentionally empty.** They appear in the provided design, so removing them would deviate from it; building analytics or account settings would add scope the case study excludes. Each renders an explicit empty state saying why.
+9. **Type sizes follow `procureflow-design-system.html` literally, including its compact component sizes.** The reference defines a documented content scale (12/15/19/24/30/37/46/58/72px) but styles its own components more tightly — 11px buttons, inputs and table cells, 10px labels, 9.5px badges. The implementation keeps both: the content scale for headings and body copy, and the reference's own component sizes for controls, tables and badges. The result is a deliberately dense enterprise interface that reads small on a large display; the design system is the source of truth for tokens, so it was followed rather than reinterpreted. The whole scale lives in one `@theme` block in `src/index.css`, so the density is a single set of values to adjust if a real user test called for it.
+10. **Dates are seeded relative to the current date** rather than pinned to the dates shown in the Figma screenshots, so relative timestamps ("2 hours ago") stay truthful instead of drifting into the past.
+11. **The application fills the viewport instead of floating as a centred card.** `procureflow-design-system.html` wraps its demo in `.app { width:min(1500px,100vw-48px); margin:24px auto; border-radius:16px }`, and the Figma screenshot shows the product inside a browser mockup frame. Both are presentation chrome for showing the design, not a layout requirement — the technical test document never asks for it. A real procurement tool is a working surface, so the shell is full-bleed: sidebar pinned to the left edge, content using the full width at every breakpoint. Every token, spacing value and component style from the design system is unchanged.
