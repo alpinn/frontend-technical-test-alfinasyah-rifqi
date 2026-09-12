@@ -1,0 +1,6 @@
+dist
+coverage
+node_modules
+yarn.lock
+src/routeTree.gen.ts
+public/mockServiceWorker.js
