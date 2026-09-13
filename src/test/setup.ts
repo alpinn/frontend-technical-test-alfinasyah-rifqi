@@ -9,6 +9,9 @@ import { server } from '@/mocks/server'
 
 beforeAll(() => {
   window.scrollTo = () => {}
+  Element.prototype.hasPointerCapture = () => false
+  Element.prototype.releasePointerCapture = () => {}
+  Element.prototype.scrollIntoView = () => {}
   server.listen({ onUnhandledRequest: 'error' })
 })
 
