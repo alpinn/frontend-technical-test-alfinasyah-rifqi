@@ -44,16 +44,17 @@ src/
 ├── components/
 │   ├── ui/           shadcn/ui primitives, restyled to design-system tokens
 │   └── *.tsx         shared application components (PageHeader, StatusBadge, states, shell)
+├── features/         page components, and the domain components each feature owns
 ├── hooks/            React context hooks (role switching)
 ├── lib/              framework-free helpers (formatting, status maps, navigation, tokens glue)
 ├── mocks/            MSW handlers + in-memory database that enforces the business rules
-├── routes/           file-based routes; one file per page
+├── routes/           thin file-based routes: the URL, its search params, and the page to render
 ├── test/             test setup and render helpers
 ├── types.ts          domain model shared by the UI and the mock API
 └── index.css         design tokens (@theme) and base layer
 ```
 
-The structure follows the size of the application rather than a prescribed architecture: a flat `api/` + `components/` + `routes/` layout, with feature-specific components living next to the route that owns them once a page grows beyond one file. No feature-sliced layering, because the app has four primary entities and that ceremony would not pay for itself.
+The structure follows the size of the application rather than a prescribed architecture. Route files stay thin: they declare the URL and validate its search params, then render a page component from `features/`. Domain components stay in the feature that owns them even when another page imports them: `PurchaseRequestTable` belongs to `features/purchase-requests/`, and the dashboard imports it from there rather than keeping a copy. Only pieces every feature reuses, such as `Pagination`, `StatusBadge` and the empty and error states, live in `components/`. No feature-sliced layering, because the app has four primary entities and that ceremony would not pay for itself.
 
 ## Setup
 
@@ -114,6 +115,10 @@ Tests target behaviour and business rules rather than render smoke checks:
 - receiving moves a purchase order `ORDERED → PARTIALLY_RECEIVED → RECEIVED` and increases stock
 - the Goods Receipt entry point is visible to `USER` and hidden from `APPROVER`
 - switching role in the top bar changes which actions are offered
+- the dashboard shows the summary figures from the API, and only an approver is prompted to review pending requests
+- the dashboard guides a staff user to create a first request when none exist, and recovers from a failed load on retry
+- the purchase request list filters by status, searches by request number, pages through results and can sort oldest first
+- the list distinguishes "no requests yet" from "no requests match these filters", and offers creation only to staff
 
 ## Mock API / Data Strategy
 
@@ -153,6 +158,9 @@ The requirement describes the chain `PR → Approval → PO → Goods Receipt` b
 **5. Design tokens as Tailwind 4 `@theme` variables, shadcn/ui restyled rather than replaced.**
 Every colour, radius, font size and shadow from `procureflow-design-system.html` is declared once in `src/index.css` as a theme variable, which makes them available as Tailwind utilities (`bg-blue-normal`, `text-dark-normal`, `rounded-xl`) and simultaneously as the values shadcn/ui's semantic variables point at. No component was rebuilt from scratch: `Button`, `Input`, `Badge`, `Table`, `Card`, `Dialog`, `Drawer`, `Sheet`, `Toast` and `Form` are the shadcn primitives with their variants rewritten in design-system tokens. `StatusBadge` is a thin domain wrapper over `Badge`, not a new component.
 
+**6. List filters live in the URL, not in component state.**
+Search, status, warehouse, sort and page on the purchase request list are TanStack Router search params validated by a Zod schema. A filtered view can be bookmarked, shared or reloaded, the browser back button undoes a filter change, and the dashboard's "Review requests" button is simply a link to `?status=SUBMITTED`. Each filter set is its own query key, and `keepPreviousData` keeps the current rows on screen, dimmed, while the next page loads instead of flashing a skeleton on every keystroke.
+
 ## Assumptions
 
 Requirements that were ambiguous, and the call made:
@@ -168,3 +176,7 @@ Requirements that were ambiguous, and the call made:
 9. **Type sizes follow `procureflow-design-system.html` literally, including its compact component sizes.** The reference defines a documented content scale (12/15/19/24/30/37/46/58/72px) but styles its own components more tightly — 11px buttons, inputs and table cells, 10px labels, 9.5px badges. The implementation keeps both: the content scale for headings and body copy, and the reference's own component sizes for controls, tables and badges. The result is a deliberately dense enterprise interface that reads small on a large display; the design system is the source of truth for tokens, so it was followed rather than reinterpreted. The whole scale lives in one `@theme` block in `src/index.css`, so the density is a single set of values to adjust if a real user test called for it.
 10. **Dates are seeded relative to the current date** rather than pinned to the dates shown in the Figma screenshots, so relative timestamps ("2 hours ago") stay truthful instead of drifting into the past.
 11. **The application fills the viewport instead of floating as a centred card.** `procureflow-design-system.html` wraps its demo in `.app { width:min(1500px,100vw-48px); margin:24px auto; border-radius:16px }`, and the Figma screenshot shows the product inside a browser mockup frame. Both are presentation chrome for showing the design, not a layout requirement — the technical test document never asks for it. A real procurement tool is a working surface, so the shell is full-bleed: sidebar pinned to the left edge, content using the full width at every breakpoint. Every token, spacing value and component style from the design system is unchanged.
+12. **Only an approver is prompted to review pending requests.** The dashboard banner ("8 purchase requests need your attention") appears for `APPROVER`, because approving is not a `USER` action. Staff still see the same "Waiting for Approval" figure in the summary cards.
+13. **The dashboard's recent requests card searches and filters in place.** The design shows a search box and a Filter button on that card without saying what they act on. They narrow the five most recent matching requests without leaving the dashboard; "View all purchase requests" opens the full list.
+14. **Export downloads every purchase request as CSV.** The design shows an Export action on the dashboard without specifying its contents. A CSV of the request list, built in the browser, is the most useful reading that needs no backend support.
+15. **Table columns use the requirement's wording.** The same table serves the dashboard and the full list, so its headers follow the requirement document (Request Number, Items, Created At) rather than the shorter labels in the dashboard design (Request ID, Date).

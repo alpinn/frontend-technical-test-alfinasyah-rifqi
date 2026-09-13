@@ -139,7 +139,8 @@ export type DashboardSummary = {
   waitingForApproval: number
   activePurchaseOrders: number
   partiallyReceivedOrders: number
-  recentPurchaseRequests: PurchaseRequestSummary[]
+  createdThisMonth: number
+  expectedThisWeek: number
   recentActivity: ActivityEntry[]
 }
 

@@ -51,7 +51,10 @@ function GlobalSearch({ onNavigate }: { onNavigate?: () => void }) {
       onSubmit={(event) => {
         event.preventDefault()
         onNavigate?.()
-        navigate({ to: '/purchase-requests', search: { search: term, page: 1 } })
+        navigate({
+          to: '/purchase-requests',
+          search: { search: term.trim() || undefined, page: 1 },
+        })
       }}
     >
       <label className="sr-only" htmlFor="global-search">
@@ -137,7 +140,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
 
           <div className="flex shrink-0 items-center gap-3">
-            {dataUpdatedAt ? (
+            {pathname === '/' && dataUpdatedAt ? (
               <span className="hidden text-xs text-dark-light-active sm:inline">
                 Last updated {formatRelativeTime(new Date(dataUpdatedAt).toISOString())}
               </span>

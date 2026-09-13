@@ -550,12 +550,26 @@ export function listActivity() {
   return db.activity
 }
 
-export function countsByStatus() {
+function isActiveOrder(order: PurchaseOrderRecord) {
+  return order.status === 'ORDERED' || order.status === 'PARTIALLY_RECEIVED'
+}
+
+export function countsByStatus(now = new Date()) {
+  const oneWeekAhead = now.getTime() + 7 * 24 * HOUR
+
   return {
     totalPurchaseRequests: db.purchaseRequests.length,
+    createdThisMonth: db.purchaseRequests.filter((entry) => {
+      const created = new Date(entry.createdAt)
+      return created.getFullYear() === now.getFullYear() && created.getMonth() === now.getMonth()
+    }).length,
     waitingForApproval: db.purchaseRequests.filter((entry) => entry.status === 'SUBMITTED').length,
-    activePurchaseOrders: db.purchaseOrders.filter(
-      (entry) => entry.status === 'ORDERED' || entry.status === 'PARTIALLY_RECEIVED',
+    activePurchaseOrders: db.purchaseOrders.filter(isActiveOrder).length,
+    expectedThisWeek: db.purchaseOrders.filter(
+      (entry) =>
+        isActiveOrder(entry) &&
+        entry.expectedDate !== null &&
+        new Date(entry.expectedDate).getTime() <= oneWeekAhead,
     ).length,
     partiallyReceivedOrders: db.purchaseOrders.filter(
       (entry) => entry.status === 'PARTIALLY_RECEIVED',
