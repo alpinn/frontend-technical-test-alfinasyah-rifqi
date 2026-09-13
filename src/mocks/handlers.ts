@@ -88,7 +88,6 @@ export const handlers = [
   http.get('/api/dashboard', () =>
     resolve(() => ({
       ...countsByStatus(),
-      recentPurchaseRequests: listPurchaseRequests().slice(0, 5).map(hydratePurchaseRequestSummary),
       recentActivity: listActivity().slice(0, 6),
     })),
   ),
@@ -99,10 +98,16 @@ export const handlers = [
       const status = url.searchParams.get('status')
       const warehouseId = url.searchParams.get('warehouseId')
       const search = url.searchParams.get('search')
+      const oldestFirst = url.searchParams.get('sort') === 'oldest'
 
       const rows = listPurchaseRequests()
         .filter((record) => (status ? record.status === status : true))
         .filter((record) => (warehouseId ? record.warehouseId === warehouseId : true))
+        .sort((a, b) =>
+          oldestFirst
+            ? a.createdAt.localeCompare(b.createdAt)
+            : b.createdAt.localeCompare(a.createdAt),
+        )
         .map(hydratePurchaseRequestSummary)
         .filter((row) => matches([row.requestNumber, row.requestedBy, row.warehouse.name], search))
 

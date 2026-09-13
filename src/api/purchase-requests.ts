@@ -9,10 +9,13 @@ import type {
   PurchaseRequestSummary,
 } from '@/types'
 
+export type PurchaseRequestSort = 'newest' | 'oldest'
+
 export type PurchaseRequestFilters = {
   search?: string
   status?: PurchaseRequestStatus | ''
   warehouseId?: string
+  sort?: PurchaseRequestSort
   page?: number
   pageSize?: number
 }
