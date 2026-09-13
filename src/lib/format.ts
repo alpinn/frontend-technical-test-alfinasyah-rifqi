@@ -1,13 +1,10 @@
-const dateFormatter = new Intl.DateTimeFormat('en-GB', {
+const dateParts = new Intl.DateTimeFormat('en-US', {
   day: '2-digit',
   month: 'short',
   year: 'numeric',
 })
 
-const dateTimeFormatter = new Intl.DateTimeFormat('en-GB', {
-  day: '2-digit',
-  month: 'short',
-  year: 'numeric',
+const timeFormatter = new Intl.DateTimeFormat('en-GB', {
   hour: '2-digit',
   minute: '2-digit',
 })
@@ -23,11 +20,14 @@ const RELATIVE_STEPS: [Intl.RelativeTimeFormatUnit, number][] = [
 ]
 
 export function formatDate(iso: string) {
-  return dateFormatter.format(new Date(iso))
+  const parts = Object.fromEntries(
+    dateParts.formatToParts(new Date(iso)).map((part) => [part.type, part.value]),
+  )
+  return `${parts.day} ${parts.month} ${parts.year}`
 }
 
 export function formatDateTime(iso: string) {
-  return dateTimeFormatter.format(new Date(iso))
+  return `${formatDate(iso)}, ${timeFormatter.format(new Date(iso))}`
 }
 
 export function formatRelativeTime(iso: string, now = Date.now()) {
