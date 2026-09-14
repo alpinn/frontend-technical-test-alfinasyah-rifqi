@@ -17,6 +17,7 @@ import { Route as InventoryIndexRouteImport } from './routes/inventory/index'
 import { Route as PurchaseOrdersIndexRouteImport } from './routes/purchase-orders/index'
 import { Route as PurchaseRequestsIndexRouteImport } from './routes/purchase-requests/index'
 import { Route as PurchaseRequestsNewRouteImport } from './routes/purchase-requests/new'
+import { Route as PurchaseOrdersOrderIdIndexRouteImport } from './routes/purchase-orders/$orderId/index'
 import { Route as PurchaseRequestsRequestIdIndexRouteImport } from './routes/purchase-requests/$requestId/index'
 import { Route as PurchaseRequestsRequestIdEditRouteImport } from './routes/purchase-requests/$requestId/edit'
 
@@ -60,6 +61,12 @@ const PurchaseRequestsNewRoute = PurchaseRequestsNewRouteImport.update({
   path: '/purchase-requests/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PurchaseOrdersOrderIdIndexRoute =
+  PurchaseOrdersOrderIdIndexRouteImport.update({
+    id: '/purchase-orders/$orderId/',
+    path: '/purchase-orders/$orderId/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const PurchaseRequestsRequestIdIndexRoute =
   PurchaseRequestsRequestIdIndexRouteImport.update({
     id: '/purchase-requests/$requestId/',
@@ -83,6 +90,7 @@ export interface FileRoutesByFullPath {
   '/purchase-orders/': typeof PurchaseOrdersIndexRoute
   '/purchase-requests/': typeof PurchaseRequestsIndexRoute
   '/purchase-requests/$requestId/edit': typeof PurchaseRequestsRequestIdEditRoute
+  '/purchase-orders/$orderId/': typeof PurchaseOrdersOrderIdIndexRoute
   '/purchase-requests/$requestId/': typeof PurchaseRequestsRequestIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -95,6 +103,7 @@ export interface FileRoutesByTo {
   '/purchase-orders': typeof PurchaseOrdersIndexRoute
   '/purchase-requests': typeof PurchaseRequestsIndexRoute
   '/purchase-requests/$requestId/edit': typeof PurchaseRequestsRequestIdEditRoute
+  '/purchase-orders/$orderId': typeof PurchaseOrdersOrderIdIndexRoute
   '/purchase-requests/$requestId': typeof PurchaseRequestsRequestIdIndexRoute
 }
 export interface FileRoutesById {
@@ -108,6 +117,7 @@ export interface FileRoutesById {
   '/purchase-orders/': typeof PurchaseOrdersIndexRoute
   '/purchase-requests/': typeof PurchaseRequestsIndexRoute
   '/purchase-requests/$requestId/edit': typeof PurchaseRequestsRequestIdEditRoute
+  '/purchase-orders/$orderId/': typeof PurchaseOrdersOrderIdIndexRoute
   '/purchase-requests/$requestId/': typeof PurchaseRequestsRequestIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -122,6 +132,7 @@ export interface FileRouteTypes {
     | '/purchase-orders/'
     | '/purchase-requests/'
     | '/purchase-requests/$requestId/edit'
+    | '/purchase-orders/$orderId/'
     | '/purchase-requests/$requestId/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -134,6 +145,7 @@ export interface FileRouteTypes {
     | '/purchase-orders'
     | '/purchase-requests'
     | '/purchase-requests/$requestId/edit'
+    | '/purchase-orders/$orderId'
     | '/purchase-requests/$requestId'
   id:
     | '__root__'
@@ -146,6 +158,7 @@ export interface FileRouteTypes {
     | '/purchase-orders/'
     | '/purchase-requests/'
     | '/purchase-requests/$requestId/edit'
+    | '/purchase-orders/$orderId/'
     | '/purchase-requests/$requestId/'
   fileRoutesById: FileRoutesById
 }
@@ -159,6 +172,7 @@ export interface RootRouteChildren {
   PurchaseOrdersIndexRoute: typeof PurchaseOrdersIndexRoute
   PurchaseRequestsIndexRoute: typeof PurchaseRequestsIndexRoute
   PurchaseRequestsRequestIdEditRoute: typeof PurchaseRequestsRequestIdEditRoute
+  PurchaseOrdersOrderIdIndexRoute: typeof PurchaseOrdersOrderIdIndexRoute
   PurchaseRequestsRequestIdIndexRoute: typeof PurchaseRequestsRequestIdIndexRoute
 }
 
@@ -220,6 +234,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PurchaseRequestsNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/purchase-orders/$orderId/': {
+      id: '/purchase-orders/$orderId/'
+      path: '/purchase-orders/$orderId'
+      fullPath: '/purchase-orders/$orderId/'
+      preLoaderRoute: typeof PurchaseOrdersOrderIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/purchase-requests/$requestId/': {
       id: '/purchase-requests/$requestId/'
       path: '/purchase-requests/$requestId'
@@ -247,6 +268,7 @@ const rootRouteChildren: RootRouteChildren = {
   PurchaseOrdersIndexRoute: PurchaseOrdersIndexRoute,
   PurchaseRequestsIndexRoute: PurchaseRequestsIndexRoute,
   PurchaseRequestsRequestIdEditRoute: PurchaseRequestsRequestIdEditRoute,
+  PurchaseOrdersOrderIdIndexRoute: PurchaseOrdersOrderIdIndexRoute,
   PurchaseRequestsRequestIdIndexRoute: PurchaseRequestsRequestIdIndexRoute,
 }
 export const routeTree = rootRouteImport
