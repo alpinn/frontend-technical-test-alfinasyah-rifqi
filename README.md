@@ -54,7 +54,7 @@ src/
 └── index.css         design tokens (@theme) and base layer
 ```
 
-The structure follows the size of the application rather than a prescribed architecture. Route files stay thin: they declare the URL and validate its search params, then render a page component from `features/`. Domain components stay in the feature that owns them even when another page imports them: `PurchaseRequestTable` belongs to `features/purchase-requests/`, and the dashboard imports it from there rather than keeping a copy. Only pieces every feature reuses, such as `Pagination`, `StatusBadge` and the empty and error states, live in `components/`. No feature-sliced layering, because the app has four primary entities and that ceremony would not pay for itself.
+The structure follows the size of the application rather than a prescribed architecture. Route files stay thin: they declare the URL and validate its search params, then render a page component from `features/`. Domain components stay in the feature that owns them even when another page imports them: `PurchaseRequestTable` belongs to `features/purchase-requests/`, and the dashboard imports it from there rather than keeping a copy. Only pieces every feature reuses, such as `ListFilters`, `Pagination`, `StatusBadge`, `StatusNotice` and the empty and error states, live in `components/`. No feature-sliced layering, because the app has four primary entities and that ceremony would not pay for itself.
 
 ## Setup
 
@@ -126,6 +126,10 @@ Tests target behaviour and business rules rather than render smoke checks:
 - an approver can approve a submitted request, which creates its purchase order, and cannot reject one without a reason
 - a failed approval keeps the confirmation open, decided requests offer no actions, and only drafts can be edited
 - a request decided elsewhere before a rejection goes through shows its current status instead of stale actions
+- the purchase order list shows the required columns newest first, filters by status, searches by supplier, pages through results and recovers from a failed load
+- a purchase order shows the ordered, received and remaining quantity of every product, overall and per-product receiving progress, and its goods receipts
+- a purchase order and the purchase request it came from link to each other, and new, cancelled and missing orders each explain their state
+- receiving totals never report a negative remaining quantity, and an order with nothing ordered counts as not started
 
 ## Mock API / Data Strategy
 
@@ -195,3 +199,5 @@ Requirements that were ambiguous, and the call made:
 18. **Pages a role cannot use explain themselves instead of disappearing.** An approver who opens the create or edit address directly, or anyone who opens edit for a request that is no longer a draft, sees why the page is unavailable and a way back. The request page likewise tells staff a submitted request is waiting for approval, rather than silently showing no buttons.
 19. **Leaving a request form with unsaved changes asks for confirmation.** The requirement lists this protection as optional. It guards in-app navigation with a "Discard unsaved changes?" dialog and browser reload or close with the native prompt, and it stops guarding once the request has been saved.
 20. **Permissions follow the requirement's role and status rules, not ownership.** Every purchase request is visible to both roles, and any staff member can edit or submit any draft. The requirement grants these actions to the `USER` role, gates them only by status, and asks the interface to show differences by role; telling individual staff apart would need authentication, which is out of scope. The requester's name is still recorded on every request, so an owner-only rule could be added in one place once real users exist.
+21. **A purchase order's supplier is display data chosen by the mock API.** The requirement lists Supplier as a column on the purchase order list and detail, but provides no supplier data, no supplier field on the purchase request, and no rule for choosing one. The mock API therefore assigns a supplier from a fixed list when an approval creates the order. "Pacific Industrial Supply" comes from the provided design; the other supplier names are mock data. A preferred supplier per warehouse was considered and left out, because it would invent a relationship the case study does not define.
+22. **Overall receiving progress adds quantities across products.** The order-level figure sums units even when products are counted in different units, following the design's activity feed ("120 of 200 units received"). Each product's own progress, always in a single unit, is shown beside it, so the exact position of every line stays clear.

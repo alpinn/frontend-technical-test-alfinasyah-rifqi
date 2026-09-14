@@ -1,13 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
 import { getRouteApi, Link } from '@tanstack/react-router'
 import { FileWarning } from 'lucide-react'
-import type { ReactNode } from 'react'
 
 import { ApiRequestError } from '@/api/client'
 import { purchaseRequestQuery } from '@/api/purchase-requests'
+import { DetailRow } from '@/components/detail-row'
 import { PageHeader } from '@/components/page-header'
 import { EmptyState, ErrorState, SkeletonRows } from '@/components/state-panels'
 import { StatusBadge } from '@/components/status-badge'
+import { StatusNotice, type NoticeTone } from '@/components/status-notice'
 import { buttonVariants } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -23,24 +24,14 @@ import { BackToRequestsLink } from '@/features/purchase-requests/back-to-request
 import { PurchaseRequestActions } from '@/features/purchase-requests/purchase-request-actions'
 import { useRole } from '@/hooks/use-role'
 import { formatCount, formatDateTime, formatQuantity } from '@/lib/format'
-import { cn } from '@/lib/utils'
 import type { PurchaseRequest, Role } from '@/types'
 
 const routeApi = getRouteApi('/purchase-requests/$requestId/')
 
-type Tone = 'neutral' | 'info' | 'success' | 'danger'
-
-const TONE_CLASS: Record<Tone, string> = {
-  neutral: 'border-line bg-surface-normal text-dark-normal-active',
-  info: 'border-blue-light-hover bg-blue-light text-blue-normal',
-  success: 'border-success-border bg-success-bg text-success-fg',
-  danger: 'border-danger-border bg-danger-bg text-danger-fg',
-}
-
 function noticeFor(
   request: PurchaseRequest,
   role: Role,
-): { tone: Tone; title: string; detail?: string } {
+): { tone: NoticeTone; title: string; detail?: string } {
   switch (request.status) {
     case 'DRAFT':
       return role === 'USER'
@@ -77,25 +68,6 @@ function noticeFor(
         detail: request.rejectionReason ? `Reason: ${request.rejectionReason}` : undefined,
       }
   }
-}
-
-function StatusNotice({ request, role }: { request: PurchaseRequest; role: Role }) {
-  const notice = noticeFor(request, role)
-  return (
-    <div role="status" className={cn('mb-3 rounded-xl border px-4 py-3', TONE_CLASS[notice.tone])}>
-      <p className="text-sm font-medium">{notice.title}</p>
-      {notice.detail ? <p className="mt-0.5 text-xs">{notice.detail}</p> : null}
-    </div>
-  )
-}
-
-function DetailRow({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="flex justify-between gap-4 px-4 py-2.5">
-      <dt className="text-xs text-dark-normal">{label}</dt>
-      <dd className="text-right text-xs font-medium text-dark-active">{children}</dd>
-    </div>
-  )
 }
 
 function ItemsCard({ request }: { request: PurchaseRequest }) {
@@ -164,8 +136,16 @@ function DetailsCard({ request }: { request: PurchaseRequest }) {
         <DetailRow label="Submitted">
           {request.submittedAt ? formatDateTime(request.submittedAt) : 'Not submitted yet'}
         </DetailRow>
-        {request.purchaseOrderNumber ? (
-          <DetailRow label="Purchase Order">{request.purchaseOrderNumber}</DetailRow>
+        {request.purchaseOrderId && request.purchaseOrderNumber ? (
+          <DetailRow label="Purchase Order">
+            <Link
+              to="/purchase-orders/$orderId"
+              params={{ orderId: request.purchaseOrderId }}
+              className="text-blue-normal hover:underline"
+            >
+              {request.purchaseOrderNumber}
+            </Link>
+          </DetailRow>
         ) : null}
       </dl>
     </Card>
@@ -242,7 +222,7 @@ export function PurchaseRequestDetailPage() {
         backLink={<BackToRequestsLink />}
         actions={<PurchaseRequestActions request={request} role={role} />}
       />
-      <StatusNotice request={request} role={role} />
+      <StatusNotice {...noticeFor(request, role)} />
       <div className="grid items-start gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,20rem)]">
         <div className="space-y-3">
           <ItemsCard request={request} />
