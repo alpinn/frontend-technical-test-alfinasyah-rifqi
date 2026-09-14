@@ -1,6 +1,8 @@
-import { queryOptions } from '@tanstack/react-query'
+import { queryOptions, type QueryClient } from '@tanstack/react-query'
 
 import { apiRequest, postJson, putJson, toQueryString } from '@/api/client'
+import { dashboardQuery } from '@/api/dashboard'
+import { purchaseOrderKeys } from '@/api/purchase-orders'
 import type {
   CreatePurchaseRequestInput,
   Paginated,
@@ -22,6 +24,7 @@ export type PurchaseRequestFilters = {
 
 export const purchaseRequestKeys = {
   all: ['purchase-requests'] as const,
+  lists: ['purchase-requests', 'list'] as const,
   list: (filters: PurchaseRequestFilters) => ['purchase-requests', 'list', filters] as const,
   detail: (id: string) => ['purchase-requests', 'detail', id] as const,
 }
@@ -61,4 +64,13 @@ export function approvePurchaseRequest(id: string) {
 
 export function rejectPurchaseRequest(id: string, reason: string) {
   return postJson<PurchaseRequest>(`/purchase-requests/${id}/reject`, { reason })
+}
+
+export function syncPurchaseRequestCaches(queryClient: QueryClient, updated: PurchaseRequest) {
+  queryClient.setQueryData(purchaseRequestKeys.detail(updated.id), updated)
+  return Promise.all([
+    queryClient.invalidateQueries({ queryKey: purchaseRequestKeys.lists }),
+    queryClient.invalidateQueries({ queryKey: dashboardQuery.queryKey }),
+    queryClient.invalidateQueries({ queryKey: purchaseOrderKeys.all }),
+  ])
 }
