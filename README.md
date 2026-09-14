@@ -119,6 +119,13 @@ Tests target behaviour and business rules rather than render smoke checks:
 - the dashboard guides a staff user to create a first request when none exist, and recovers from a failed load on retry
 - the purchase request list filters by status, searches by request number, pages through results and can sort oldest first
 - the list distinguishes "no requests yet" from "no requests match these filters", and offers creation only to staff
+- the request form requires a warehouse and at least one product, rejects a quantity of zero, and disables products already added in another row
+- saving a draft with several products opens the new request, and a failed save keeps everything that was entered
+- leaving the form with unsaved changes asks before discarding them
+- staff can submit a draft after confirming, and never see approve or reject
+- an approver can approve a submitted request, which creates its purchase order, and cannot reject one without a reason
+- a failed approval keeps the confirmation open, decided requests offer no actions, and only drafts can be edited
+- a request decided elsewhere before a rejection goes through shows its current status instead of stale actions
 
 ## Mock API / Data Strategy
 
@@ -161,6 +168,9 @@ Every colour, radius, font size and shadow from `procureflow-design-system.html`
 **6. List filters live in the URL, not in component state.**
 Search, status, warehouse, sort and page on the purchase request list are TanStack Router search params validated by a Zod schema. A filtered view can be bookmarked, shared or reloaded, the browser back button undoes a filter change, and the dashboard's "Review requests" button is simply a link to `?status=SUBMITTED`. Each filter set is its own query key, and `keepPreviousData` keeps the current rows on screen, dimmed, while the next page loads instead of flashing a skeleton on every keystroke.
 
+**7. Validation runs in the form and again in the mock API.**
+The request form validates with a Zod schema for immediate, inline feedback: a missing warehouse, a quantity that is not greater than zero, or a product added twice. The mock API enforces the same rules and answers a violation with HTTP 422 and a map of field paths such as `items.1.quantity`. The form writes those server errors onto the same fields with `setError`, so a rule the client missed — or one that only the server can know — still appears next to the input it concerns, and the entered values are never lost.
+
 ## Assumptions
 
 Requirements that were ambiguous, and the call made:
@@ -180,3 +190,8 @@ Requirements that were ambiguous, and the call made:
 13. **The dashboard's recent requests card searches and filters in place.** The design shows a search box and a Filter button on that card without saying what they act on. They narrow the five most recent matching requests without leaving the dashboard; "View all purchase requests" opens the full list.
 14. **Export downloads every purchase request as CSV.** The design shows an Export action on the dashboard without specifying its contents. A CSV of the request list, built in the browser, is the most useful reading that needs no backend support.
 15. **Table columns use the requirement's wording.** The same table serves the dashboard and the full list, so its headers follow the requirement document (Request Number, Items, Created At) rather than the shorter labels in the dashboard design (Request ID, Date).
+16. **Creating a request saves a draft; submitting is a separate, confirmed step.** The status model starts every request at `DRAFT`, and the requirement asks for Submit to be confirmed. Saving first lets staff review the request page before sending it, and Submit for Approval on that page opens a confirmation dialog.
+17. **A product can appear once per request, and the form prevents the duplicate rather than only reporting it.** A product chosen in one row is disabled in the others, marked "already added". The same rule is still validated in the form and enforced by the mock API, so the "Product has already been added." message remains as a safety net.
+18. **Pages a role cannot use explain themselves instead of disappearing.** An approver who opens the create or edit address directly, or anyone who opens edit for a request that is no longer a draft, sees why the page is unavailable and a way back. The request page likewise tells staff a submitted request is waiting for approval, rather than silently showing no buttons.
+19. **Leaving a request form with unsaved changes asks for confirmation.** The requirement lists this protection as optional. It guards in-app navigation with a "Discard unsaved changes?" dialog and browser reload or close with the native prompt, and it stops guarding once the request has been saved.
+20. **Permissions follow the requirement's role and status rules, not ownership.** Every purchase request is visible to both roles, and any staff member can edit or submit any draft. The requirement grants these actions to the `USER` role, gates them only by status, and asks the interface to show differences by role; telling individual staff apart would need authentication, which is out of scope. The requester's name is still recorded on every request, so an owner-only rule could be added in one place once real users exist.
