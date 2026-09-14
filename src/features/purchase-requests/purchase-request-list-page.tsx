@@ -4,22 +4,25 @@ import { SearchX } from 'lucide-react'
 import { useCallback } from 'react'
 
 import { purchaseRequestListQuery, type PurchaseRequestSort } from '@/api/purchase-requests'
+import { ListFilters, type ListFilterValues } from '@/components/list-filters'
 import { PageHeader } from '@/components/page-header'
 import { Pagination } from '@/components/pagination'
 import { EmptyState, ErrorState, SkeletonRows } from '@/components/state-panels'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { CreatePurchaseRequestLink } from '@/features/purchase-requests/create-purchase-request-link'
-import {
-  PurchaseRequestFilters,
-  type PurchaseRequestFilterValues,
-} from '@/features/purchase-requests/purchase-request-filters'
 import { PurchaseRequestTable } from '@/features/purchase-requests/purchase-request-table'
 import { useRole } from '@/hooks/use-role'
+import { PURCHASE_REQUEST_STATUSES, STATUS_LABEL } from '@/lib/status'
 import { cn } from '@/lib/utils'
+import type { PurchaseRequestStatus } from '@/types'
 
 const PAGE_SIZE = 10
 const routeApi = getRouteApi('/purchase-requests/')
+const STATUS_OPTIONS = PURCHASE_REQUEST_STATUSES.map((status) => ({
+  value: status,
+  label: STATUS_LABEL[status],
+}))
 
 export function PurchaseRequestListPage() {
   const search = routeApi.useSearch()
@@ -40,7 +43,7 @@ export function PurchaseRequestListPage() {
   })
 
   const applyFilters = useCallback(
-    (patch: PurchaseRequestFilterValues) =>
+    (patch: ListFilterValues<PurchaseRequestStatus>) =>
       navigate({ search: (previous) => ({ ...previous, ...patch, page: 1 }), replace: true }),
     [navigate],
   )
@@ -133,10 +136,13 @@ export function PurchaseRequestListPage() {
         actions={canCreate ? <CreatePurchaseRequestLink /> : null}
       />
       <Card>
-        <PurchaseRequestFilters
+        <ListFilters
           value={{ search: search.search, status: search.status, warehouseId: search.warehouseId }}
           onChange={applyFilters}
           onReset={clearFilters}
+          searchLabel="Search by request number, requester or warehouse"
+          searchPlaceholder="Search by number, requester or warehouse"
+          statusOptions={STATUS_OPTIONS}
         />
         {renderContent()}
       </Card>
