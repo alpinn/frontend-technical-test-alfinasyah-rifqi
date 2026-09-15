@@ -167,8 +167,10 @@ export const handlers = [
       const warehouseId = url.searchParams.get('warehouseId')
       const search = url.searchParams.get('search')
 
+      const statuses = status ? status.split(',') : []
+
       const rows = listPurchaseOrders()
-        .filter((record) => (status ? record.status === status : true))
+        .filter((record) => (statuses.length > 0 ? statuses.includes(record.status) : true))
         .filter((record) => (warehouseId ? record.warehouseId === warehouseId : true))
         .map(hydratePurchaseOrderSummary)
         .filter((row) => matches([row.orderNumber, row.supplier.name, row.warehouse.name], search))
