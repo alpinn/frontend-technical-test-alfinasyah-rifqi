@@ -124,6 +124,18 @@
   ::placeholder {
     color: var(--color-dark-light-active);
   }
+
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  [role='option']:not([data-disabled]),
+  [role^='menuitem']:not([data-disabled]),
+  label:has(> input[type='checkbox']:not(:disabled)) {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
 }
 
 @keyframes shimmer {
