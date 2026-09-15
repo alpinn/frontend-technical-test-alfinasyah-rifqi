@@ -200,6 +200,11 @@ export const handlers = [
       const rows = listStock()
         .filter((record) => (warehouseId ? record.warehouseId === warehouseId : true))
         .map(hydrateInventoryItem)
+        .sort(
+          (a, b) =>
+            a.product.name.localeCompare(b.product.name) ||
+            a.warehouse.name.localeCompare(b.warehouse.name),
+        )
         .filter((row) => matches([row.product.name, row.product.sku, row.warehouse.name], search))
 
       return paginate(rows, url)
