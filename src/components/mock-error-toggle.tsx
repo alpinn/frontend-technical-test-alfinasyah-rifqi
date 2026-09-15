@@ -21,7 +21,7 @@ export function MockErrorToggle() {
   if (!import.meta.env.DEV) return null
 
   return (
-    <label className="mt-3 flex cursor-pointer items-center gap-2 px-2.5 text-2xs text-dark-light-active">
+    <label className="mt-3 flex items-center gap-2 px-2.5 text-2xs text-dark-light-active">
       <input
         type="checkbox"
         checked={enabled}

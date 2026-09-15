@@ -167,8 +167,10 @@ export const handlers = [
       const warehouseId = url.searchParams.get('warehouseId')
       const search = url.searchParams.get('search')
 
+      const statuses = status ? status.split(',') : []
+
       const rows = listPurchaseOrders()
-        .filter((record) => (status ? record.status === status : true))
+        .filter((record) => (statuses.length > 0 ? statuses.includes(record.status) : true))
         .filter((record) => (warehouseId ? record.warehouseId === warehouseId : true))
         .map(hydratePurchaseOrderSummary)
         .filter((row) => matches([row.orderNumber, row.supplier.name, row.warehouse.name], search))
@@ -198,6 +200,11 @@ export const handlers = [
       const rows = listStock()
         .filter((record) => (warehouseId ? record.warehouseId === warehouseId : true))
         .map(hydrateInventoryItem)
+        .sort(
+          (a, b) =>
+            a.product.name.localeCompare(b.product.name) ||
+            a.warehouse.name.localeCompare(b.warehouse.name),
+        )
         .filter((row) => matches([row.product.name, row.product.sku, row.warehouse.name], search))
 
       return paginate(rows, url)

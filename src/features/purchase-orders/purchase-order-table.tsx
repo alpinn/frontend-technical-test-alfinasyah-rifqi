@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router'
+import type { ReactNode } from 'react'
 
 import { StatusBadge } from '@/components/status-badge'
 import { buttonVariants } from '@/components/ui/button'
@@ -13,7 +14,27 @@ import {
 import { formatCount, formatDate } from '@/lib/format'
 import type { PurchaseOrderSummary } from '@/types'
 
-export function PurchaseOrderTable({ rows }: { rows: PurchaseOrderSummary[] }) {
+export function PurchaseOrderTable({
+  rows,
+  renderAction,
+}: {
+  rows: PurchaseOrderSummary[]
+  renderAction?: (row: PurchaseOrderSummary) => ReactNode
+}) {
+  const action = (row: PurchaseOrderSummary) =>
+    renderAction ? (
+      renderAction(row)
+    ) : (
+      <Link
+        to="/purchase-orders/$orderId"
+        params={{ orderId: row.id }}
+        aria-label={`View ${row.orderNumber}`}
+        className={buttonVariants({ variant: 'outline', size: 'sm' })}
+      >
+        View
+      </Link>
+    )
+
   return (
     <>
       <div className="hidden md:block">
@@ -42,16 +63,7 @@ export function PurchaseOrderTable({ rows }: { rows: PurchaseOrderSummary[] }) {
                 <TableCell>
                   <StatusBadge status={row.status} />
                 </TableCell>
-                <TableCell className="text-right">
-                  <Link
-                    to="/purchase-orders/$orderId"
-                    params={{ orderId: row.id }}
-                    aria-label={`View ${row.orderNumber}`}
-                    className={buttonVariants({ variant: 'outline', size: 'sm' })}
-                  >
-                    View
-                  </Link>
-                </TableCell>
+                <TableCell className="text-right">{action(row)}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -60,11 +72,11 @@ export function PurchaseOrderTable({ rows }: { rows: PurchaseOrderSummary[] }) {
 
       <ul className="divide-y divide-line md:hidden">
         {rows.map((row) => (
-          <li key={row.id}>
+          <li key={row.id} className="flex items-center gap-3 px-4 py-3">
             <Link
               to="/purchase-orders/$orderId"
               params={{ orderId: row.id }}
-              className="block px-4 py-3 transition-colors hover:bg-surface-white-hover"
+              className="block min-w-0 flex-1 rounded-md transition-colors hover:text-blue-normal"
             >
               <span className="flex items-center justify-between gap-3">
                 <span className="text-sm font-medium text-dark-active">{row.orderNumber}</span>
@@ -76,6 +88,7 @@ export function PurchaseOrderTable({ rows }: { rows: PurchaseOrderSummary[] }) {
                 {formatDate(row.createdAt)}
               </span>
             </Link>
+            {renderAction ? renderAction(row) : null}
           </li>
         ))}
       </ul>

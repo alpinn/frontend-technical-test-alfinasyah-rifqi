@@ -1,15 +1,17 @@
 import { useQuery } from '@tanstack/react-query'
 import { getRouteApi, Link } from '@tanstack/react-router'
-import { FileWarning } from 'lucide-react'
+import { FileWarning, PackageCheck } from 'lucide-react'
+import { useState } from 'react'
 
 import { ApiRequestError } from '@/api/client'
 import { purchaseOrderQuery } from '@/api/purchase-orders'
 import { DetailRow } from '@/components/detail-row'
+import { Icon } from '@/components/icon'
 import { PageHeader } from '@/components/page-header'
 import { EmptyState, ErrorState, SkeletonRows } from '@/components/state-panels'
 import { StatusBadge } from '@/components/status-badge'
 import { StatusNotice, type NoticeTone } from '@/components/status-notice'
-import { buttonVariants } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -21,7 +23,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { ReceiveGoodsDialog } from '@/features/goods-receipt/receive-goods-dialog'
 import { BackToOrdersLink } from '@/features/purchase-orders/back-to-orders-link'
+import { useRole } from '@/hooks/use-role'
 import { formatCount, formatDate, formatDateTime } from '@/lib/format'
 import { receivingProgress, remainingQuantity } from '@/lib/purchase-order'
 import type { PurchaseOrder } from '@/types'
@@ -266,6 +270,8 @@ function DetailSkeleton() {
 
 export function PurchaseOrderDetailPage() {
   const { orderId } = routeApi.useParams()
+  const { role } = useRole()
+  const [isReceiving, setIsReceiving] = useState(false)
   const query = useQuery(purchaseOrderQuery(orderId))
 
   if (query.isPending) return <DetailSkeleton />
@@ -307,6 +313,8 @@ export function PurchaseOrderDetailPage() {
   }
 
   const order = query.data
+  const canReceive =
+    role === 'USER' && (order.status === 'ORDERED' || order.status === 'PARTIALLY_RECEIVED')
 
   return (
     <>
@@ -315,6 +323,14 @@ export function PurchaseOrderDetailPage() {
         badge={<StatusBadge status={order.status} />}
         description={`Ordered from ${order.supplier.name} for ${order.warehouse.name}.`}
         backLink={<BackToOrdersLink />}
+        actions={
+          canReceive ? (
+            <Button onClick={() => setIsReceiving(true)}>
+              <Icon icon={PackageCheck} />
+              Receive Goods
+            </Button>
+          ) : null
+        }
       />
       <StatusNotice {...noticeFor(order)} />
       <div className="grid items-start gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,20rem)]">
@@ -324,6 +340,9 @@ export function PurchaseOrderDetailPage() {
         </div>
         <DetailsCard order={order} />
       </div>
+      {canReceive ? (
+        <ReceiveGoodsDialog orderId={order.id} open={isReceiving} onOpenChange={setIsReceiving} />
+      ) : null}
     </>
   )
 }

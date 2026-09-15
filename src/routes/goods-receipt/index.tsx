@@ -1,26 +1,15 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { z } from 'zod'
 
-import { PageHeader } from '@/components/page-header'
-import { EmptyState } from '@/components/state-panels'
-import { Card } from '@/components/ui/card'
+import { GoodsReceiptPage } from '@/features/goods-receipt/goods-receipt-page'
 
-export const Route = createFileRoute('/goods-receipt/')({
-  component: GoodsReceiptPage,
+const searchSchema = z.object({
+  search: z.string().optional().catch(undefined),
+  warehouseId: z.string().optional().catch(undefined),
+  page: z.number().int().min(1).catch(1).default(1),
 })
 
-function GoodsReceiptPage() {
-  return (
-    <>
-      <PageHeader
-        title="Goods Receipt"
-        description="Record the goods arriving against an ordered purchase order."
-      />
-      <Card>
-        <EmptyState
-          title="Nothing to receive yet"
-          description="Orders that are ready to receive will appear here."
-        />
-      </Card>
-    </>
-  )
-}
+export const Route = createFileRoute('/goods-receipt/')({
+  validateSearch: searchSchema,
+  component: GoodsReceiptPage,
+})

@@ -14,6 +14,7 @@ import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as GoodsReceiptIndexRouteImport } from './routes/goods-receipt/index'
 import { Route as InventoryIndexRouteImport } from './routes/inventory/index'
+import { Route as InventoryItemIdRouteImport } from './routes/inventory/$itemId'
 import { Route as PurchaseOrdersIndexRouteImport } from './routes/purchase-orders/index'
 import { Route as PurchaseRequestsIndexRouteImport } from './routes/purchase-requests/index'
 import { Route as PurchaseRequestsNewRouteImport } from './routes/purchase-requests/new'
@@ -44,6 +45,11 @@ const GoodsReceiptIndexRoute = GoodsReceiptIndexRouteImport.update({
 const InventoryIndexRoute = InventoryIndexRouteImport.update({
   id: '/inventory/',
   path: '/inventory/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InventoryItemIdRoute = InventoryItemIdRouteImport.update({
+  id: '/inventory/$itemId',
+  path: '/inventory/$itemId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PurchaseOrdersIndexRoute = PurchaseOrdersIndexRouteImport.update({
@@ -84,6 +90,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
+  '/inventory/$itemId': typeof InventoryItemIdRoute
   '/purchase-requests/new': typeof PurchaseRequestsNewRoute
   '/goods-receipt/': typeof GoodsReceiptIndexRoute
   '/inventory/': typeof InventoryIndexRoute
@@ -97,6 +104,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
+  '/inventory/$itemId': typeof InventoryItemIdRoute
   '/purchase-requests/new': typeof PurchaseRequestsNewRoute
   '/goods-receipt': typeof GoodsReceiptIndexRoute
   '/inventory': typeof InventoryIndexRoute
@@ -111,6 +119,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
+  '/inventory/$itemId': typeof InventoryItemIdRoute
   '/purchase-requests/new': typeof PurchaseRequestsNewRoute
   '/goods-receipt/': typeof GoodsReceiptIndexRoute
   '/inventory/': typeof InventoryIndexRoute
@@ -126,6 +135,7 @@ export interface FileRouteTypes {
     | '/'
     | '/reports'
     | '/settings'
+    | '/inventory/$itemId'
     | '/purchase-requests/new'
     | '/goods-receipt/'
     | '/inventory/'
@@ -139,6 +149,7 @@ export interface FileRouteTypes {
     | '/'
     | '/reports'
     | '/settings'
+    | '/inventory/$itemId'
     | '/purchase-requests/new'
     | '/goods-receipt'
     | '/inventory'
@@ -152,6 +163,7 @@ export interface FileRouteTypes {
     | '/'
     | '/reports'
     | '/settings'
+    | '/inventory/$itemId'
     | '/purchase-requests/new'
     | '/goods-receipt/'
     | '/inventory/'
@@ -166,6 +178,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ReportsRoute: typeof ReportsRoute
   SettingsRoute: typeof SettingsRoute
+  InventoryItemIdRoute: typeof InventoryItemIdRoute
   PurchaseRequestsNewRoute: typeof PurchaseRequestsNewRoute
   GoodsReceiptIndexRoute: typeof GoodsReceiptIndexRoute
   InventoryIndexRoute: typeof InventoryIndexRoute
@@ -211,6 +224,13 @@ declare module '@tanstack/react-router' {
       path: '/inventory'
       fullPath: '/inventory/'
       preLoaderRoute: typeof InventoryIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inventory/$itemId': {
+      id: '/inventory/$itemId'
+      path: '/inventory/$itemId'
+      fullPath: '/inventory/$itemId'
+      preLoaderRoute: typeof InventoryItemIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/purchase-orders/': {
@@ -262,6 +282,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ReportsRoute: ReportsRoute,
   SettingsRoute: SettingsRoute,
+  InventoryItemIdRoute: InventoryItemIdRoute,
   PurchaseRequestsNewRoute: PurchaseRequestsNewRoute,
   GoodsReceiptIndexRoute: GoodsReceiptIndexRoute,
   InventoryIndexRoute: InventoryIndexRoute,
