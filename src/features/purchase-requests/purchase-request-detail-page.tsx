@@ -108,7 +108,7 @@ function ItemsCard({ request }: { request: PurchaseRequest }) {
               <span className="block text-sm font-medium text-dark-active">
                 {item.product.name}
               </span>
-              <span className="block text-2xs text-dark-light-active">SKU: {item.product.sku}</span>
+              <span className="block text-2xs text-dark-normal">SKU: {item.product.sku}</span>
             </span>
             <span className="text-sm font-medium text-dark-active">
               {formatQuantity(item.quantity, item.product.unit)}

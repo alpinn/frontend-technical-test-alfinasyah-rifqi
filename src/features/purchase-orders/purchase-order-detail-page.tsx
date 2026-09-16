@@ -115,7 +115,7 @@ function ReceivingCard({ order }: { order: PurchaseOrder }) {
                 <TableRow key={item.id}>
                   <TableCell>
                     <span className="block font-medium">{item.product.name}</span>
-                    <span className="block text-2xs text-dark-light-active">
+                    <span className="block text-2xs text-dark-normal">
                       {item.product.sku} · {item.product.unit}
                     </span>
                   </TableCell>
@@ -156,7 +156,7 @@ function ReceivingCard({ order }: { order: PurchaseOrder }) {
               <span className="block text-sm font-medium text-dark-active">
                 {item.product.name}
               </span>
-              <span className="block text-2xs text-dark-light-active">
+              <span className="block text-2xs text-dark-normal">
                 {item.product.sku} · {item.product.unit}
               </span>
               <Progress
@@ -205,7 +205,7 @@ function ReceiptsCard({ order }: { order: PurchaseOrder }) {
                   <span className="block text-sm font-medium text-dark-active">
                     {receipt.receiptNumber}
                   </span>
-                  <span className="block text-2xs text-dark-light-active">
+                  <span className="block text-2xs text-dark-normal">
                     Received by {receipt.receivedBy} · {formatDateTime(receipt.receivedAt)}
                   </span>
                 </span>

@@ -65,7 +65,7 @@ export function InventoryTable({ rows }: { rows: InventoryItem[] }) {
                 <span className="block text-sm font-medium text-dark-active">
                   {row.product.name}
                 </span>
-                <span className="mt-0.5 block text-2xs text-dark-light-active">
+                <span className="mt-0.5 block text-2xs text-dark-normal">
                   {row.product.sku} · {row.warehouse.name}
                 </span>
               </span>

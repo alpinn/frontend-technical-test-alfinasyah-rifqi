@@ -25,7 +25,7 @@ function StatePanel({
         <div className="mx-auto mb-2.5 grid size-9.5 place-items-center rounded-lg border border-line bg-surface-normal text-dark-normal">
           <Icon icon={icon} className="size-4" />
         </div>
-        <h4 className="text-sm font-medium text-dark-active">{title}</h4>
+        <h3 className="text-sm font-medium text-dark-active">{title}</h3>
         <p className="mt-1 text-xs text-dark-normal">{description}</p>
         {action ? <div className="mt-3 flex justify-center gap-2">{action}</div> : null}
       </div>

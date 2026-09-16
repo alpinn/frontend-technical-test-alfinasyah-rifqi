@@ -57,7 +57,7 @@ export function AppNav({
         return (
           <div key={group.title ?? 'primary'}>
             {group.title ? (
-              <p className="mx-2 mt-4.5 mb-1.5 text-2xs font-medium tracking-[0.06em] text-dark-light-active uppercase">
+              <p className="mx-2 mt-4.5 mb-1.5 text-2xs font-medium tracking-[0.06em] text-dark-normal uppercase">
                 {group.title}
               </p>
             ) : null}

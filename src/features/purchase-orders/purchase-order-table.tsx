@@ -83,7 +83,7 @@ export function PurchaseOrderTable({
                 <StatusBadge status={row.status} />
               </span>
               <span className="mt-1 block text-xs text-dark-normal">{row.supplier.name}</span>
-              <span className="mt-0.5 block text-2xs text-dark-light-active">
+              <span className="mt-0.5 block text-2xs text-dark-normal">
                 {row.warehouse.name} · {formatCount(row.totalItems, 'item')} ·{' '}
                 {formatDate(row.createdAt)}
               </span>

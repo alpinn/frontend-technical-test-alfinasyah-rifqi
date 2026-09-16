@@ -52,7 +52,7 @@ function MovementHistory({ stock }: { stock: InventoryItem }) {
               <span className="block text-sm font-medium text-dark-active">
                 {MOVEMENT_LABEL[movement.type]}
               </span>
-              <span className="block text-2xs text-dark-light-active">
+              <span className="block text-2xs text-dark-normal">
                 {movement.reference} · {formatDateTime(movement.occurredAt)}
               </span>
             </span>
@@ -149,9 +149,7 @@ export function InventoryItemPage() {
               </span>
               <span className="text-sm font-medium text-dark-normal">{stock.product.unit}</span>
             </p>
-            <p className="mt-1 text-2xs text-dark-light-active">
-              On hand in {stock.warehouse.name}
-            </p>
+            <p className="mt-1 text-2xs text-dark-normal">On hand in {stock.warehouse.name}</p>
           </div>
           <dl className="divide-y divide-line">
             <DetailRow label="Product">{stock.product.name}</DetailRow>

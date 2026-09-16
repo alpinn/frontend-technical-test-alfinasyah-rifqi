@@ -28,7 +28,7 @@ function ActivityList({ entries }: { entries: ActivityEntry[] }) {
             <time
               dateTime={entry.occurredAt}
               title={formatDateTime(entry.occurredAt)}
-              className="mt-1 block text-2xs text-dark-light-active"
+              className="mt-1 block text-2xs text-dark-normal"
             >
               {formatRelativeTime(entry.occurredAt)}
             </time>
