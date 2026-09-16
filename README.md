@@ -13,11 +13,13 @@ A frontend-only application for staff who raise stock requests and managers who 
 | Role                                          | Can do                                                                                                                            |
 | --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | `USER` (John Doe, Warehouse Staff)            | View dashboard, view/create/edit draft purchase requests, submit them, view purchase orders, record goods receipt, view inventory |
-| `APPROVER` (Alex Morgan, Procurement Manager) | View purchase requests and their detail, approve, reject with a reason                                                            |
+| `APPROVER` (Alex Morgan, Procurement Manager) | View purchase requests and their detail, approve, reject with a reason; read-only dashboard, purchase orders and inventory        |
 
 Actions that are invalid for the active role or the current record status are **hidden**, not merely disabled, so the interface never offers something that cannot succeed.
 
 There is no real backend and no real authentication — both are deliberately out of scope. The application talks to a mock API over the network via Mock Service Worker, so the same code would work against a real server by removing the worker.
+
+**Live demo:** _added once the Vercel deployment is live._
 
 ## Tech Stack
 
@@ -172,10 +174,10 @@ Everything fetched lives in the query cache keyed per resource and filter set; e
 The requirement describes the chain `PR → Approval → PO → Goods Receipt` but never says who creates the purchase order. Rather than invent a PO authoring screen outside the required scope, approval generates an `ORDERED` purchase order from the approved request's items. This keeps the end-to-end flow continuous and demonstrable, and models the realistic case where approval is what releases the order.
 
 **5. Design tokens as Tailwind 4 `@theme` variables, shadcn/ui restyled rather than replaced.**
-Every colour, radius, font size and shadow from `procureflow-design-system.html` is declared once in `src/index.css` as a theme variable, which makes them available as Tailwind utilities (`bg-blue-normal`, `text-dark-normal`, `rounded-xl`) and simultaneously as the values shadcn/ui's semantic variables point at. No component was rebuilt from scratch: `Button`, `Input`, `Badge`, `Table`, `Card`, `Dialog`, `Drawer`, `Sheet`, `Toast` and `Form` are the shadcn primitives with their variants rewritten in design-system tokens. `StatusBadge` is a thin domain wrapper over `Badge`, not a new component.
+Every colour, radius, font size and shadow from `procureflow-design-system.html` is declared once in `src/index.css` as a theme variable, which makes them available as Tailwind utilities (`bg-blue-normal`, `text-dark-normal`, `rounded-xl`) and simultaneously as the values shadcn/ui's semantic variables point at. No component was rebuilt from scratch: `Button`, `Input`, `Select`, `Badge`, `Table`, `Card`, `Dialog`, `Sheet`, `Toast` and `Form` are the shadcn primitives with their variants rewritten in design-system tokens. `StatusBadge` is a thin domain wrapper over `Badge`, not a new component.
 
 **6. List filters live in the URL, not in component state.**
-Search, status, warehouse, sort and page on the purchase request list are TanStack Router search params validated by a Zod schema. A filtered view can be bookmarked, shared or reloaded, the browser back button undoes a filter change, and the dashboard's "Review requests" button is simply a link to `?status=SUBMITTED`. Each filter set is its own query key, and `keepPreviousData` keeps the current rows on screen, dimmed, while the next page loads instead of flashing a skeleton on every keystroke.
+Search, status, warehouse, sort and page on the purchase request, purchase order, goods receipt and inventory lists are TanStack Router search params validated by a Zod schema. A filtered view can be bookmarked, shared or reloaded, the browser back button undoes a filter change, and the dashboard's "Review requests" button is simply a link to `?status=SUBMITTED`. Each filter set is its own query key, and `keepPreviousData` keeps the current rows on screen, dimmed, while the next page loads instead of flashing a skeleton on every keystroke.
 
 **7. Validation runs in the form and again in the mock API.**
 The request form validates with a Zod schema for immediate, inline feedback: a missing warehouse, a quantity that is not greater than zero, or a product added twice. The mock API enforces the same rules and answers a violation with HTTP 422 and a map of field paths such as `items.1.quantity`. The form writes those server errors onto the same fields with `setError`, so a rule the client missed — or one that only the server can know — still appears next to the input it concerns, and the entered values are never lost.
@@ -209,3 +211,16 @@ Requirements that were ambiguous, and the call made:
 23. **Recording a receipt takes two steps: enter the quantities, then review and confirm.** The requirement asks for Receive Goods to be confirmed. The review step shows what will be added and whether the order will end partially or fully received, because a receipt changes stock immediately and nothing in the requirement lets anyone reverse it. A product left empty simply did not arrive in this delivery; at least one product needs a quantity.
 24. **The Goods Receipt page is a work queue of orders still waiting for goods.** The requirement places Receive Goods on the purchase order and lists Goods Receipt in the navigation without describing that page. It lists the `ORDERED` and `PARTIALLY_RECEIVED` orders with the same search and warehouse filter as the purchase order list, and each row opens the same receive dialog used on the order page, so there is one receiving flow rather than two.
 25. **Inventory lists one row per product per warehouse, sorted by product name.** Stock belongs to a product in a specific warehouse, so the same product appears once for each warehouse and the warehouse filter narrows it to one. Each row opens a movement history — the optional extra in the requirement — where every purchase receipt is listed with its receipt number. Seeded stock starts from an opening-balance adjustment so the history adds up to the current figure.
+26. **Secondary text is darker than the design system's muted grey, so it meets WCAG AA contrast.** An axe audit of every page flagged the design system's `dark-light-active` grey (#909dad), used for helper text, placeholders, timestamps and the sidebar section label, at 2.3–2.8:1 against its backgrounds, and the warning brown (#8b6d2a) on the Partially Received badge and notice at 4.39:1. The requirement lists colour contrast among its basic accessibility checks, so text in that grey now uses the design system's own `dark-normal` (#546881, 4.8–5.7:1) and the warning foreground token is darkened slightly to #846727 (4.8:1). Sizes, spacing, borders and every other colour are unchanged. After the change the audit reports no violations on any page at desktop, tablet or mobile width.
+
+## Deployment
+
+The app is a static site: the mock API runs in the visitor's browser as a service worker, so no server or serverless function is involved. `vercel.json` builds with `yarn build`, serves `dist/`, rewrites every route to `index.html` so deep links such as `/purchase-orders/po-0009` load, excludes `mockServiceWorker.js` and `assets/` from that rewrite, and serves the worker with `Cache-Control: no-cache` so a redeploy never leaves an old worker in place. The Docker image applies the same rules through `nginx.conf`.
+
+To deploy, import the GitHub repository in Vercel; the settings are read from `vercel.json`. Each visitor gets their own in-memory data, which resets on reload.
+
+## Limitations and Next Steps
+
+- **No persistence or real users.** Data lives in the browser tab and resets on reload; roles are switched rather than signed in. A real backend would replace `src/mocks/` behind the same `src/api/` functions, and authentication would make the ownership rule in assumption 20 possible.
+- **Purchase orders cannot be cancelled or corrected, and receipts cannot be reversed.** The requirement defines neither action; a real system would need both, with a reversing stock movement.
+- **No end-to-end tests.** Behaviour is covered by component and business-rule tests against the real router and mock API; a Playwright run of the full demo flow would be the next addition.
