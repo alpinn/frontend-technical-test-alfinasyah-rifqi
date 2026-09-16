@@ -57,7 +57,7 @@
   --color-success-fg: #2b6e5c;
   --color-success-border: #d6ebe4;
   --color-warning-bg: #f8f3e7;
-  --color-warning-fg: #8b6d2a;
+  --color-warning-fg: #846727;
   --color-warning-border: #eee3c8;
   --color-danger-bg: #f8eaec;
   --color-danger-fg: #995062;
@@ -122,7 +122,7 @@
   }
 
   ::placeholder {
-    color: var(--color-dark-light-active);
+    color: var(--color-dark-normal);
   }
 
   button:not(:disabled),

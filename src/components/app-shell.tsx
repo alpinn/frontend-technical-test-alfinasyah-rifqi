@@ -62,7 +62,7 @@ function GlobalSearch({ onNavigate }: { onNavigate?: () => void }) {
       </label>
       <Icon
         icon={Search}
-        className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-dark-light-active"
+        className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-dark-normal"
       />
       <Input
         id="global-search"
@@ -96,7 +96,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           </span>
           <span className="min-w-0">
             <span className="block truncate text-sm font-medium text-dark-active">{user.name}</span>
-            <span className="block truncate text-2xs text-dark-light-active">{user.jobTitle}</span>
+            <span className="block truncate text-2xs text-dark-normal">{user.jobTitle}</span>
           </span>
         </div>
         <MockErrorToggle />
@@ -141,7 +141,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           <div className="flex shrink-0 items-center gap-3">
             {pathname === '/' && dataUpdatedAt ? (
-              <span className="hidden text-xs text-dark-light-active sm:inline">
+              <span className="hidden text-xs text-dark-normal sm:inline">
                 Last updated {formatRelativeTime(new Date(dataUpdatedAt).toISOString())}
               </span>
             ) : null}

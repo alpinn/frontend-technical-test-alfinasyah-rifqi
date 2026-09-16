@@ -24,11 +24,11 @@ export function RoleSwitcher() {
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" aria-label={`Active role: ${ROLE_LABELS[role]}`}>
           {ROLE_LABELS[role]}
-          <Icon icon={ChevronDown} className="size-3.5 text-dark-light-active" />
+          <Icon icon={ChevronDown} className="size-3.5 text-dark-normal" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel className="text-2xs font-medium tracking-wide text-dark-light-active uppercase">
+        <DropdownMenuLabel className="text-2xs font-medium tracking-wide text-dark-normal uppercase">
           Switch role
         </DropdownMenuLabel>
         <DropdownMenuSeparator />

@@ -218,7 +218,7 @@ function ReceiptForm({ order, onClose }: { order: PurchaseOrder; onClose: () => 
               <div key={field.id} className="rounded-lg border border-line p-3">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <p className="text-sm font-medium text-dark-active">{item.product.name}</p>
-                  <p className="text-2xs text-dark-light-active">
+                  <p className="text-2xs text-dark-normal">
                     {item.product.sku} · {item.product.unit}
                   </p>
                 </div>
@@ -267,7 +267,7 @@ function ReceiptForm({ order, onClose }: { order: PurchaseOrder; onClose: () => 
             </p>
           ) : null}
           {fullyReceivedItems.length > 0 ? (
-            <p className="text-2xs text-dark-light-active">
+            <p className="text-2xs text-dark-normal">
               Already fully received:{' '}
               {fullyReceivedItems.map((item) => item.product.name).join(', ')}.
             </p>

@@ -34,7 +34,7 @@ export function SummaryCards({ summary, role }: { summary: DashboardSummary; rol
             <dd className="mt-2 text-xl font-semibold text-dark-active">
               {card.value.toLocaleString('en-US')}
             </dd>
-            <dd className="mt-1 text-2xs text-dark-light-active">{card.help}</dd>
+            <dd className="mt-1 text-2xs text-dark-normal">{card.help}</dd>
           </div>
         ))}
       </dl>

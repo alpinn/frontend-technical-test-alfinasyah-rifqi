@@ -142,7 +142,7 @@ function ItemRow({
                 />
               </FormControl>
               {product ? (
-                <span className="pointer-events-none absolute top-1/2 right-2.5 -translate-y-1/2 text-2xs font-medium text-dark-light-active">
+                <span className="pointer-events-none absolute top-1/2 right-2.5 -translate-y-1/2 text-2xs font-medium text-dark-normal">
                   {product.unit}
                 </span>
               ) : null}

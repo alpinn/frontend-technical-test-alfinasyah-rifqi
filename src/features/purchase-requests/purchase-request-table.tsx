@@ -123,7 +123,7 @@ export function PurchaseRequestTable({
               <span className="mt-1 block text-xs text-dark-normal">
                 {row.warehouse.name} · {formatCount(row.totalItems, 'item')}
               </span>
-              <span className="mt-0.5 block text-2xs text-dark-light-active">
+              <span className="mt-0.5 block text-2xs text-dark-normal">
                 {row.requestedBy} · {formatDate(row.createdAt)}
               </span>
             </Link>
