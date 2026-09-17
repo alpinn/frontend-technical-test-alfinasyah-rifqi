@@ -19,7 +19,7 @@ Actions that are invalid for the active role or the current record status are **
 
 There is no real backend and no real authentication — both are deliberately out of scope. The application talks to a mock API over the network via Mock Service Worker, so the same code would work against a real server by removing the worker.
 
-**Live demo:** _added once the Vercel deployment is live._
+**Live demo:** https://frontend-technical-test-alfinasyah.vercel.app
 
 ## Tech Stack
 
@@ -157,6 +157,7 @@ src/mocks/db       in-memory database; owns all business rules and status transi
 - **Every handler waits 300–800 ms** (skipped when `MODE === 'test'`, so the suite stays fast) so loading and submitting states are genuinely visible.
 - **Validation failures return HTTP 422 with a `fieldErrors` map**, which the forms map onto the relevant inputs; conflicting transitions return 409; unknown records 404.
 - **State is in-memory and resets on reload.** See the engineering decisions below.
+- **Mocking survives the browser stopping the service worker.** Browsers stop an idle service worker, most often while its tab is in the background. MSW's worker keeps the list of pages it mocks for in memory, so after a restart it forwarded every request to the real host, which answered with `index.html` or HTTP 405 until the page was reloaded. `src/mocks/browser.ts` therefore re-announces the page to the worker every two seconds and whenever the tab becomes visible again, which also keeps a visible tab's worker from going idle. The generated `mockServiceWorker.js` is left untouched so upgrading MSW stays a one-command change.
 - Seed data is shaped to match the dashboard figures in the design: 48 purchase requests, 8 awaiting approval, 21 active purchase orders, 5 partially received.
 
 ## Engineering Decisions
